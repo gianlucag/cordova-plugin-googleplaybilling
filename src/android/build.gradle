@@ -1,0 +1,5 @@
+dependencies {
+    implementation 'com.android.billingclient:billing:7.0.0'
+}
+
+

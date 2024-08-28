@@ -1,0 +1,11 @@
+{
+  "name": "cordova-plugin-googleplaybilling",
+  "version": "7.0.0",
+  "description": "Google Play billing plugin for Android Cordova apps",
+  "cordova": {
+    "id": "cordova-plugin-googleplaybilling",
+    "platforms": [
+      "android"
+    ]
+  }
+}

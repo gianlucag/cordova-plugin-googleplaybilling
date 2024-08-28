@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        id="cordova-plugin-googleplaybilling" version="7.0.0">
+    <name>GooglePlayBillingPlugin</name>
+    <js-module name="GooglePlayBilling" src="www/index.js">
+        <clobbers target="GooglePlayBilling" />
+    </js-module>
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+    <platform name="android">
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="com.android.vending.BILLING" />
+        </config-file>
+
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="GooglePlayBilling">
+                <param name="android-package" value="com.gg.gpbp.GooglePlayBilling" />
+            </feature>
+        </config-file>
+
+        <framework src="com.android.billingclient:billing:7.0.0" />
+        <source-file src="src/android/GooglePlayBilling.java" target-dir="src/com/gg/gpbp" />
+
+    </platform>
+</plugin>
