@@ -46,10 +46,10 @@ Below is the options object to pass to the init function:
 var options = {
     products: products,
     enableCache: true,
-    onInitSuccess: onInitSuccess
+    onInitSuccess: onInitSuccess,
     onInitFail: onInitFail,
     onPurchaseSuccess: onPurchaseSuccess
-    onPurchaseFail: onPurchaseFail
+    onPurchaseFail: onPurchaseFail,
 };
 ```
 
@@ -70,6 +70,13 @@ var products = [
 ];
 ```
 
+Properties of the product object:
+
+- `sku` - The product id of the item, a string.
+- `type` - The type of the product
+  - `"inapp"` - In-App non consumable
+  - `"subs"` - Subscription
+
 #### `enableCache`
 
 Enables the plugin's internal cache for purchases. If the Google Play library is temporarily unavailable, the user will still have access to purchased products.
@@ -77,6 +84,10 @@ Enables the plugin's internal cache for purchases. If the Google Play library is
 #### `onInitSuccess`
 
 This callback is invoked after the plugin has been successfully initialized. Your app should transition to the main view after this callback is executed. All other plugin methods should be called only after this callback has been triggered by the plugin.
+
+#### `onInitFail`
+
+This callback is triggered if the plugin fails to initialize. After this callback is executed, your app should transition to the main view, but you must inform the user that any paid features will not be available. Without proper initialization of the plugin, it is not possible to verify if a product is owned.
 
 #### `onPurchaseSuccess`
 
@@ -172,13 +183,13 @@ onPurchaseFail: (res) => {
 
 Your app should respond appropriately based on the error code provided by the `onPurchaseFail` callback.
 
-### Get the price of a product
+### Get the price of an In-App product
 
 Google localizes product prices based on language and currency. You can retrieve the localized price string by calling the `getPrice()` method.
 
 #### Example
 
-Get the localized price of product with id `product_id_example`
+Get the localized price of the In-App product with id `product_id_example`
 
 ```javascript
 const price = GooglePlayBilling.getPrice("product_id_example");
@@ -186,6 +197,21 @@ console.log(price); // "3.99 €"
 ```
 
 This returns the localized price of the product, including its currency symbol.
+
+### Get the Price of a Subscription Product
+
+For subscription products, the `getPrice()` method returns an array of prices, with each item representing the price for a specific subscription period. For instance, if a subscription includes a free trial, the `getPrice()` method will return an array with two elements: the first will be the string `"Free"`, and the second will be the actual subscription price.
+
+#### Example
+
+Retrieve the localized price of the subscription product with the ID `product_id_example2`.
+
+```javascript
+const prices = GooglePlayBilling.getPrice("product_id_example2");
+console.log(prices); // ["Free", "3.99 €"]
+```
+
+The string "Free" is localized by Google based on the user language.
 
 ### Check if a product is owned
 
