@@ -14,7 +14,7 @@ In your Google Play Console, create the In-App and/or Subscription products for 
 
 ### Step 1
 
-Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/7.0.0.zip) or from GitHub.
+Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/7.0.2.zip) or from the GitHub "Code" -> "Download ZIP" button.
 
 ### Step 2
 
