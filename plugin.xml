@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        id="cordova-plugin-googleplaybilling" version="7.0.0">
+        id="cordova-plugin-googleplaybilling" version="7.0.3">
     <name>GooglePlayBillingPlugin</name>
     <js-module name="GooglePlayBilling" src="www/index.js">
         <clobbers target="GooglePlayBilling" />
