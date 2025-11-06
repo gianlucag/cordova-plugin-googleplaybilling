@@ -14,7 +14,7 @@ In your Google Play Console, create the In-App and/or Subscription products for 
 
 ### Step 1
 
-Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/8.0.0.zip) or from the GitHub "Code" -> "Download ZIP" button.
+Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/8.0.1.zip) or from the GitHub "Code" -> "Download ZIP" button.
 
 ### Step 2
 
@@ -44,12 +44,12 @@ Below is the options object to pass to the init function:
 
 ```javascript
 var options = {
-    products: products,
-    enableCache: true,
-    onInitSuccess: onInitSuccess,
-    onInitFail: onInitFail,
-    onPurchaseSuccess: onPurchaseSuccess
-    onPurchaseFail: onPurchaseFail,
+	products: products,
+	enableCache: true,
+	onInitSuccess: onInitSuccess,
+	onInitFail: onInitFail,
+	onPurchaseSuccess: onPurchaseSuccess,
+	onPurchaseFail: onPurchaseFail,
 };
 ```
 
@@ -418,7 +418,7 @@ When the user first opens the app, immediately after the plugin is successfully 
 
 #### On the onResume Event
 
-Since some payment methods are completed outside the device, it’s important to check for owned products not only at startup but also during the app's `onResume()` event. If the user doesn’t close the app, completes a purchase, and then resumes the app, the paid features should be available.
+Since some payment methods are completed outside the device, it’s important to check for owned products not only at startup but also during the app's `onResume()` event. If the user closes the app, completes a purchase, and then resumes the app, the paid features should be available.
 
 #### Immediately After a Successful Purchase
 
