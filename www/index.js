@@ -111,12 +111,68 @@ function init(options) {
     products = {};
 
     function onPurchaseEvent(res) {
-        if(res == 0) options.onPurchaseSuccess();
-        else if(res == 1) options.onPurchaseFail("USER_CANCELED");
-        else if(res == 7) options.onPurchaseFail("ITEM_ALREADY_OWNED");
-        else if(res == 3) options.onPurchaseFail("UNABLE_TO_CHARGE");
-        else options.onPurchaseFail("NETWORK");
+        switch (res) {
+            case 0:
+                options.onPurchaseSuccess();
+                break;
+            case 3:
+                // Unable to charge, payment method not valid
+                options.onPurchaseFail("BILLING_UNAVAILABLE");
+                break;
+            case 5:
+                // Incorrect usage of the billing API
+                options.onPurchaseFail("DEVELOPER_ERROR");
+                break;
+            case 6:
+                // Transient Google Play error, retrying might fix the issue
+                options.onPurchaseFail("ERROR");
+                break;
+            case -2:
+                // A feature requested by the plugin during payment is not supported by Google Play
+                options.onPurchaseFail("FEATURE_NOT_SUPPORTED");
+                break;
+            case 7:
+                // The item is already owned by the user
+                // This error should not occur, because the caller is expected to use the isOwned() method
+                // to check whether the item is already owned before attempting to purchase it
+                options.onPurchaseFail("ITEM_ALREADY_OWNED");
+                break;
+            case 8:
+                // The item is not owned by the user. Usually a Google Play synchronization error 
+                options.onPurchaseFail("ITEM_NOT_OWNED");
+                break;
+            case 4:
+                // The item is not available for purchase.
+                options.onPurchaseFail("ITEM_UNAVAILABLE");
+                break;
+            case 12:
+                // A transient network error while calling the Google Play API
+                options.onPurchaseFail("NETWORK_ERROR");
+                break;
+            case -1:
+                // The plugin lost connection with the local Google Play service
+                // Reinitializing the plugin and trying again might fix the issue
+                options.onPurchaseFail("SERVICE_DISCONNECTED");
+                break;
+            case -3:
+                // Deprecated by Google Play API in favor of SERVICE_UNAVAILABLE error
+                // The action took longer than expected. On updated systems should never occur
+                options.onPurchaseFail("SERVICE_TIMEOUT");
+                break;
+            case 2:
+                // The Google Play API is momentarly unavailable. Retrying might fix the issue
+                options.onPurchaseFail("SERVICE_UNAVAILABLE");
+                break;
+            case 1:
+                // Transaction was canceled by the user
+                options.onPurchaseFail("USER_CANCELED");
+                break;
+            default:
+                options.onPurchaseFail("UNKNOWN");
+                break;
+        }
     };
+    
 
     async function initialize() {
         try {

@@ -14,7 +14,7 @@ In your Google Play Console, create the In-App and/or Subscription products for 
 
 ### Step 1
 
-Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/7.0.3.zip) or from the GitHub "Code" -> "Download ZIP" button.
+Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/8.0.0.zip) or from the GitHub "Code" -> "Download ZIP" button.
 
 ### Step 2
 
@@ -156,27 +156,163 @@ Upon a successful purchase, the plugin will trigger the `onPurchaseSuccess` call
 
 You are responsible for implementing the `onPurchaseSuccess` callback (as defined in the `init()` method) to correctly unlock paid features in your app and to provide feedback to the user about the successful purchase (e.g., showing a popup message).
 
-The `onPurchaseFail` callback provides an error code. Below are the possible values and suggested actions:
+The `onPurchaseFail` callback provides an error code describing the reason for a failed purchase attempt.  
+Below are all possible values and the recommended handling strategies.
 
-- `USER_CANCELED` - The user dismissed the Google purchase screen. It's generally acceptable to silently handle this error (e.g., no popup messages) and return to the purchase screen.
-- `ITEM_ALREADY_OWNED` - The user attempted to purchase an item they already own. Your app should disable the "buy" button for products that are already owned to prevent this scenario. However, if the button remains enabled and the user tries to repurchase the item, this error will occur.
-- `UNABLE_TO_CHARGE` - Google rejected the payment method. This could be due to the debit/credit card being declined by Google or the transaction not being approved by the bank. Inform the user via a popup message.
-- `NETWORK` - A network error occurred during the payment transaction. Notify the user with a popup message.
+---
+
+###### `USER_CANCELED`
+
+The user dismissed or canceled the Google Play purchase screen.  
+This is not an error condition — your app should **silently handle** this case (e.g., simply close the purchase UI).
+
+**Suggested action:**  
+No popup message required. Optionally, allow the user to retry later.
+
+---
+
+###### `BILLING_UNAVAILABLE`
+
+Unable to charge the user — the payment method is invalid or unavailable.  
+This can occur if the Google Play billing service is temporarily disabled or not supported on the device.
+
+**Suggested action:**  
+Inform the user that billing is unavailable and suggest retrying later or checking their payment methods.
+
+---
+
+###### `DEVELOPER_ERROR`
+
+Incorrect usage of the Google Play Billing API.  
+This usually indicates a bug in your integration or an invalid request sent to the billing system.
+
+**Suggested action:**  
+Log the error for developer review. Do not show a user-facing message.
+
+---
+
+###### `ERROR`
+
+A transient Google Play error occurred.  
+Retrying the purchase operation after a short delay might fix the issue.
+
+**Suggested action:**  
+Display a generic “Temporary error, please try again” message.
+
+---
+
+###### `FEATURE_NOT_SUPPORTED`
+
+A feature requested by the plugin during the purchase process is not supported by the current version of Google Play on the device.
+
+**Suggested action:**  
+Inform the user that this feature is not available on their device.
+
+---
+
+###### `ITEM_ALREADY_OWNED`
+
+The user attempted to purchase an item they already own.  
+This should not normally occur, since your app should check ownership using the `isOwned()` method before initiating a purchase.
+
+**Suggested action:**  
+Disable the "Buy" button for items already owned. If it occurs, notify the user that the item is already purchased.
+
+---
+
+###### `ITEM_NOT_OWNED`
+
+The item is not owned by the user.  
+This can occur due to a Google Play synchronization issue.
+
+**Suggested action:**  
+Prompt the user to restore purchases or retry synchronization.
+
+---
+
+###### `ITEM_UNAVAILABLE`
+
+The item is not available for purchase.  
+This could mean that the product ID is invalid or not published correctly in the Play Console.
+
+**Suggested action:**  
+Display an error message indicating the item is unavailable.
+
+---
+
+###### `NETWORK_ERROR`
+
+A transient network error occurred while communicating with Google Play services.
+
+**Suggested action:**  
+Notify the user of the network issue and suggest checking their connection before retrying.
+
+---
+
+###### `SERVICE_DISCONNECTED`
+
+The plugin lost connection with the local Google Play service.  
+Reinitializing the billing plugin and retrying the operation may resolve the issue.
+
+**Suggested action:**  
+Retry initialization before allowing another purchase attempt.
+
+---
+
+###### `SERVICE_TIMEOUT`
+
+Deprecated by the Google Play API in favor of `SERVICE_UNAVAILABLE`.  
+The action took longer than expected and should no longer occur on updated systems.
+
+**Suggested action:**  
+Treat as a generic service error. Retry after a delay.
+
+---
+
+###### `SERVICE_UNAVAILABLE`
+
+The Google Play API is temporarily unavailable.  
+Retrying later might fix the issue.
+
+**Suggested action:**  
+Show a popup message indicating that the service is temporarily unavailable.
+
+---
+
+###### `NETWORK`
+
+A generic network error occurred during the transaction.
+
+**Suggested action:**  
+Notify the user with a popup message indicating a connection issue.
+
+---
+
+###### `UNKNOWN`
+
+The Google Play API returned an unknown error code. This can happen due to edge cases, new error codes from the billing service, or unexpected internal failures.
+
+**Suggested action:**  
+Show a generic error message to the user. Optionally provide a "Report issue" or "Retry" action.
+
+---
 
 #### Example
 
 Here's an example implementation of the `onPurchaseFail` callback:
 
 ```javascript
-onPurchaseFail: (res) => {
-	if (errorCode == "USER_CANCELED") {
+onPurchaseFail: (errorCode) => {
+	if (errorCode === "USER_CANCELED") {
 		// do nothing
-	} else if (errorCode == "ITEM_ALREADY_OWNED") {
+	} else if (errorCode === "ITEM_ALREADY_OWNED") {
 		showErrorItemAlreadyOwnedPopup();
-	} else if (errorCode == "UNABLE_TO_CHARGE") {
+	} else if (errorCode === "BILLING_UNAVAILABLE") {
 		showErrorUnableToChargePopup();
-	} else if (errorCode == "NETWORK") {
+	} else if (errorCode === "NETWORK_ERROR") {
 		showErrorNetworkPopup();
+	} else {
+		showGenericPurchaseErrorPopup();
 	}
 };
 ```
