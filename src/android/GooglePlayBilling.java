@@ -26,6 +26,8 @@ import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryProductDetailsParams.Product;
 import com.android.billingclient.api.QueryPurchasesParams;
+import com.android.billingclient.api.PendingPurchasesParams;
+import com.android.billingclient.api.QueryProductDetailsResult;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -60,18 +62,24 @@ public final class GooglePlayBilling
     }
 
     private JSONObject toJSON(Purchase p) throws JSONException {
-        JSONObject ret = new JSONObject()
-            .put("productIds", new JSONArray(p.getProducts()))
-            .put("orderId", p.getOrderId())
-            .put("getPurchaseState", p.getPurchaseState())
-            .put("developerPayload", p.getDeveloperPayload())
-            .put("acknowledged", p.isAcknowledged())
-            .put("autoRenewing", p.isAutoRenewing())
-            .put("accountId", p.getAccountIdentifiers().getObfuscatedAccountId())
-            .put("profileId", p.getAccountIdentifiers().getObfuscatedProfileId())
-            .put("signature", p.getSignature())
-            .put("receipt", p.getOriginalJson().toString());
-            return ret;
+        JSONObject ret = new JSONObject();
+
+        ret.put("productIds", new JSONArray(p.getProducts()));
+        ret.put("orderId", p.getOrderId());
+        ret.put("getPurchaseState", p.getPurchaseState());
+        ret.put("developerPayload", p.getDeveloperPayload());
+        ret.put("acknowledged", p.isAcknowledged());
+        ret.put("autoRenewing", p.isAutoRenewing());
+
+        if (p.getAccountIdentifiers() != null) {
+            ret.put("accountId", p.getAccountIdentifiers().getObfuscatedAccountId());
+            ret.put("profileId", p.getAccountIdentifiers().getObfuscatedProfileId());
+        }
+
+        ret.put("signature", p.getSignature());
+        ret.put("receipt", p.getOriginalJson().toString());
+
+        return ret;
     }
 
     private JSONObject toJSON(ProductDetails p) throws JSONException {
@@ -84,10 +92,10 @@ public final class GooglePlayBilling
             OneTimePurchaseOfferDetails details = p.getOneTimePurchaseOfferDetails();
             ret.put("price", details.getFormattedPrice());
         } else if (p.getProductType().equals(ProductType.SUBS)) {
-            List<SubscriptionOfferDetails> subscriptionOfferDetails = p.getSubscriptionOfferDetails();
-            SubscriptionOfferDetails details = subscriptionOfferDetails.get(0);
+            List<SubscriptionOfferDetails> offers = p.getSubscriptionOfferDetails();
+            SubscriptionOfferDetails offer = offers.get(0);
             JSONArray prices = new JSONArray();
-            for (PricingPhase pricing : details.getPricingPhases().getPricingPhaseList()) {
+            for (PricingPhase pricing : offer.getPricingPhases().getPricingPhaseList()) {
                 prices.put(pricing.getFormattedPrice());
             }
             ret.put("prices", prices);
@@ -162,7 +170,14 @@ public final class GooglePlayBilling
         log("init()");
 
         if(billingClient == null) {
-            billingClient = BillingClient.newBuilder(cordova.getActivity()).enablePendingPurchases().setListener(this).build();
+            billingClient = BillingClient.newBuilder(cordova.getActivity())
+                .enablePendingPurchases(
+                    PendingPurchasesParams.newBuilder()
+                        .enableOneTimeProducts()
+                        .build()
+                )
+                .setListener(this)
+                .build();
         }
 
         callbackContext.success();
@@ -192,6 +207,12 @@ public final class GooglePlayBilling
     private void sendPurchaseEventResponse(int code) {
         final PluginResult result = new PluginResult(PluginResult.Status.OK, code);
         result.setKeepCallback(true);
+
+        if (callbackPurchaseEvent == null) {
+            log("Purchase event ignored: no callback registered.");
+            return;
+        }
+
         callbackPurchaseEvent.sendPluginResult(result);
     }
 
@@ -243,9 +264,17 @@ public final class GooglePlayBilling
     }      
 
     @Override
-    public void onProductDetailsResponse(BillingResult res, List<ProductDetails> products) {
+    public void onProductDetailsResponse(BillingResult res, QueryProductDetailsResult result) {
         log("onProductDetailsResponse()");
         log("BillingResult=" + res.getResponseCode());
+
+        List<ProductDetails> products = result.getProductDetailsList();
+
+        if (products == null) {
+            callbackContext.error("Google Play returned a null product list.");
+            return;
+        }
+
         log("List<ProductDetails>.size()=" + products.size());
 
         if (res.getResponseCode() != BillingResponseCode.OK) {

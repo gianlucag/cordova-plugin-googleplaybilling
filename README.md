@@ -4,7 +4,7 @@ Google Play In-App Purchases and Subscriptions for Cordova
 
 ## Summary
 
-This Cordova plugin enables Google Play In-App purchases and Subscriptions within an Android Cordova app. It utilizes Google Play Billing library version 7.0.
+This Cordova plugin enables Google Play In-App purchases and Subscriptions within an Android Cordova app. It utilizes Google Play Billing library version 8.0.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ In your Google Play Console, create the In-App and/or Subscription products for 
 
 ### Step 1
 
-Download the latest version of the plugin from this [link](https://github.com/gianlucag/cordova-plugin-googleplaybilling/archive/refs/tags/8.0.1.zip) or from the GitHub "Code" -> "Download ZIP" button.
+Download the plugin from GitHub: "Code" -> "Download ZIP" button.
 
 ### Step 2
 
@@ -129,12 +129,12 @@ var options = {
 			// user canceled the purchase
 		} else if (errorCode == "ITEM_ALREADY_OWNED") {
 			// product is already owned
-		} else if (errorCode == "UNABLE_TO_CHARGE") {
+		} else if (errorCode == "BILLING_UNAVAILABLE") {
 			// payment method was refused by Google
 		} else if (errorCode == "NETWORK") {
 			// network error
 		} else {
-			// should not enter here
+			// other error: see below for the complete list of error codes
 		}
 	},
 };
